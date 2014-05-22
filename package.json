@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "emitter-component": "^1.1.1",
-    "native-promise-only": "^0.3.0-a"
+    "native-promise-only": "^0.3.0-a",
+    "node-uuid": "^1.4.1",
+    "ws": "^0.4.31"
   },
   "devDependencies": {
     "freeport": "^1.0.2",

@@ -76,4 +76,6 @@ describe('requestify', function() {
         .then(done);
   });
 
+  // TODO: test errors, broken connection, etc
+
 });

@@ -1,7 +1,19 @@
 var assert = require('assert'),
     Promise = require('native-promise-only'),
+    requestify = require('../lib/requestify'),
     Host = require('../lib/Host'),
-    Peer = require('../lib/Peer');
+    Peer = require('../lib/Peer'),
+    WebSocket = require('../lib/WebSocket');
+
+
+function freeport () {
+  return new Promise(function (resolve, reject) {
+    var f = require('freeport');
+    f(function (err, port) {
+      err ? reject(err) : resolve(port);
+    })
+  });
+}
 
 describe('Host', function () {
 
@@ -63,6 +75,20 @@ describe('Host', function () {
     });
   });
 
+  it('should ignore undefined peer in function remove', function () {
+    var PEER1 = 'peer1';
+    var host = new Host();
+
+    host.create(PEER1).then(function (peer1) {
+      assert.deepEqual(Object.keys(host.peers), [PEER1]);
+
+      host.remove().then(function () {
+        assert.deepEqual(Object.keys(host.peers), [PEER1]);
+        done();
+      });
+    });
+  });
+
   it('should send a message from one peer to another', function (done) {
     var PEER1 = 'peer1';
     var PEER2 = 'peer2';
@@ -119,6 +145,59 @@ describe('Host', function () {
                 assert.equal(err.toString(), 'Error: Peer not found (id: peer2)');
                 done();
               });
+        });
+  });
+
+  it('should send a message to the server', function (done) {
+    var ADDRESS = '127.0.0.1',
+        host = new Host();
+
+    freeport()
+        .then(function (PORT) {
+          host.listen(ADDRESS, PORT).then(function () {
+            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
+            requestify(client);
+
+            client.onopen = function () {
+              var request = {method: 'ping', params: 'hello world'};
+
+              client.request(request)
+                  .then(function (response) {
+                    assert.deepEqual(response, {result: 'hello world', error: null});
+
+                    client.close();
+                    host.close();
+
+                    done();
+                  });
+            }
+          })
+        });
+  });
+
+  it('should return an error when an unknown message is sent to the server', function (done) {
+    var ADDRESS = '127.0.0.1',
+        host = new Host();
+
+    freeport()
+        .then(function (PORT) {
+          host.listen(ADDRESS, PORT).then(function () {
+            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
+            requestify(client);
+
+            client.onopen = function () {
+              var request = {method: 'foo', params: 'hello world'};
+
+              client.request(request)
+                  .then(function (response) {
+                    assert.ok(false, 'should not resolve');
+                  })
+                  .catch(function (err) {
+                    assert(/Unknown method/.test(err.toString()));
+                    done();
+                  });
+            }
+          })
         });
   });
 
