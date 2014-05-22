@@ -19,20 +19,20 @@ Install the library via npm:
 
 ## Use
 
-Here a simple usage example:
+Here a basic usage example:
 
 ```js
 // load the library
 var distribus = require('distribus'),
     Promise = distribus.Promise;
 
-// create an instance
-var bus = new distribus();
+// create a host
+var host = new distribus.Host();
 
 // create two peers
 Promise.all([
-      bus.create('peer1'), 
-      bus.create('peer2')
+      host.create('peer1'), 
+      host.create('peer2')
     ])
     .then(function (peers) {
       var peer1 = peers[0];
@@ -50,9 +50,9 @@ Promise.all([
       peer2.on('message', function (sender, message) {
         console.log(this.id + ' received a message from ' + sender + ': ' + message);
 
-        // remove both peers from the bus
-        bus.remove(peer1);
-        bus.remove(peer2);
+        // remove both peers from the host
+        host.remove(peer1);
+        host.remove(peer2);
       });
 
       // send a message from peer2 to peer1
@@ -62,7 +62,56 @@ Promise.all([
 
 ## API
 
-TODO: describe the API
+### distribus
+
+The distribus namespace contains the following prototypes:
+
+- `distribus.Host`
+- `distribus.Promise`
+
+### Host
+
+A Host can be created as 
+
+```js
+var host = new distribus.Host();
+```
+
+A Host has the following methods:
+
+- `Host.create(id: String) : Promise.<Peer, Error>`
+  Create a new `Peer`. Returns a promise which resolves with the new Peer.
+  Rejects when a peer with the same id already exists.
+- `Host.remove(peer: Peer | String): Promise.<null, Error>`
+  Remove a peer from the host. The peer itself or it's id can be provided.
+
+
+### Peer
+
+A `Peer` can send and receive messages. A Peer can be created by a Host.
+
+```js
+var host = new distribus.Host();
+
+host.create('peer1')
+    .then(function (peer) {
+      console.log(peer.id + ' created');
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+```
+
+A Peer has the following functions:
+
+- `Peer.on(event, callback)`
+  Listen for an event. Available events: 
+  
+  - `'message'`. Receive a message. Syntax:
+    `Peer.on('message', function (sender : String, message: *) {...})`
+  
+- `Peer.send(recipient: String, message: *) : Promise.<null, Error>`
+  Send a message to an other peer. The message must be valid JSON.
 
 
 <!-- TODO: create a build script

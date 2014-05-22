@@ -6,14 +6,12 @@ var assert = require('assert'),
 
 describe('distribus', function () {
 
-  it('should create a distribus', function () {
-    var bus = distribus();
-    assert(bus instanceof Host);
+  it('should export Host', function () {
+    assert.strictEqual(distribus.Host, Host);
   });
 
-  it.skip('should export Promise', function () {
-    // FIXME: why does this test fail?
-    assert(distribus.Promise instanceof Promise);
+  it('should export Promise', function () {
+    assert.strictEqual(distribus.Promise, Promise);
   });
 
 });
