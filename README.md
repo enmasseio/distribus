@@ -19,7 +19,7 @@ Install the library via npm:
 
 ## Use
 
-### A single, local host
+### A single host
 
 ```js
 // load the library
