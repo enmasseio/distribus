@@ -132,7 +132,7 @@ describe('Host', function () {
         });
   });
 
-  it('should receive an error sending a message failed', function (done) {
+  it('should receive an error when sending a message failed', function (done) {
     var PEER1 = 'peer1';
     var PEER2 = 'peer2'; // a non-existing peer
     var MESSAGE = 'Hello world!';
@@ -208,12 +208,18 @@ describe('Host', function () {
         });
   });
 
+  describe('host api', function () {
+    // TODO: neatly test the hosts socket api
+  });
+
   describe('network', function () {
     var ADDRESS = '127.0.0.1';
     var host1 = null;
     var host2 = null;
     var url1 = null;
     var url2 = null;
+    var peer1 = null;
+    var peer2 = null;
 
     beforeEach(function (done) {
       // create hosts
@@ -230,7 +236,19 @@ describe('Host', function () {
               host2.listen(ADDRESS, ports[1])
             ]);
           })
+
+          // create peers
           .then(function () {
+            return Promise.all([
+              host1.create('peer1'),
+              host2.create('peer2')
+            ]);
+          })
+
+          .then(function (peers) {
+            peer1 = peers[0];
+            peer2 = peers[1];
+
             url1 = 'ws://' + host1.address + ':' + host1.port;
             url2 = 'ws://' + host2.address + ':' + host2.port;
 
@@ -250,6 +268,8 @@ describe('Host', function () {
             host2 = null;
             url1 = null;
             url2 = null;
+            peer1 = null;
+            peer2 = null;
 
             done();
           });
@@ -281,33 +301,37 @@ describe('Host', function () {
           });
     });
 
-    it('should send a message to a peer located on another host', function (done) {
-      var peer1 = null,
-          peer2 = null;
+    it('should find a peer located on the host itself', function (done) {
+      host1.find('peer1')
+          .then(function (url) {
+            assert.equal(url, host1.url);
+            assert.deepEqual(host1.addresses, {});
+            done();
+          });
+    });
 
+    it('should find a peer located on the host itself when host has no url', function (done) {
+      var host = new Host();
+      host.create('peer1')
+          .then(function () {
+            host.find('peer1')
+                .then(function (url) {
+                  assert.equal(url, null);
+                  assert.deepEqual(host.addresses, {});
+                  done();
+                });
+          })
+    });
+
+    it('should find a peer located on an other host', function (done) {
       // join the hosts
       host1.join(url2)
 
-          // create two peers, one on each host
+          // find a peer located on host2 via host1
           .then(function () {
-            return Promise.all([
-              host1.create('peer1'),
-              host2.create('peer2')
-            ]);
-          })
-
-          // send a message from one peer to another
-          .then(function (peers) {
-            peer1 = peers[0];
-            peer2 = peers[1];
-
-            return new Promise(function (resolve, reject) {
-              peer2.on('message', function (sender, message) {
-                assert.equal(sender, 'peer1');
-                assert.equal(message, 'hello peer2');
-                resolve()
-              })
-
+            return host1.find('peer2').then(function (url) {
+              assert.equal(url, host2.url);
+              assert.deepEqual(host1.addresses, {peer2: host2.url});
             });
           })
 
@@ -316,6 +340,62 @@ describe('Host', function () {
             done();
           });
     });
+
+    it('should throw an error when a peer is not found', function (done) {
+      // join the hosts
+      host1.find('non-existing-peer')
+          .then(function (url) {
+            assert.ok(false, 'should not resolve');
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: Peer not found (id: non-existing-peer)');
+            done();
+          })
+    });
+
+    it('should send a message to a peer located on another host', function (done) {
+      // join the hosts
+      host1.join(url2)
+          // send a message from one peer to another
+          .then(function () {
+            return new Promise(function (resolve, reject) {
+              peer2.on('message', function (sender, message) {
+                assert.equal(sender, 'peer1');
+                assert.equal(message, 'hello peer2');
+
+                done()
+              });
+
+              peer1.send('peer2', 'hello peer2');
+            });
+          })
+    });
+
+    it('should send a message to an peer on other host and receive a message', function (done) {
+      // join the hosts
+      host1.join(url2)
+          // send a message from one peer to another
+          .then(function () {
+            return new Promise(function (resolve, reject) {
+              peer2.on('message', function (from, message) {
+                assert.equal(from, 'peer1');
+                assert.equal(message, 'hello peer2');
+
+                peer2.send(from, 'hi there');
+              });
+
+              peer1.on('message', function (sender, message) {
+                assert.equal(sender, 'peer2');
+                assert.equal(message, 'hi there');
+
+                done()
+              });
+
+              peer1.send('peer2', 'hello peer2');
+            });
+          })
+    });
+
   });
 
 });

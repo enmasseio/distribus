@@ -79,11 +79,23 @@ var host = new distribus.Host();
 
 A Host has the following methods:
 
-- `Host.create(id: String) : Promise.<Peer, Error>`
+- `Host.create(id: string) : Promise.<Peer, Error>`
   Create a new `Peer`. Returns a promise which resolves with the new Peer.
   Rejects when a peer with the same id already exists.
-- `Host.remove(peer: Peer | String): Promise.<null, Error>`
+- `Host.remove(peer: Peer | string): Promise.<null, Error>`
   Remove a peer from the host. The peer itself or it's id can be provided.
+- `Host.find(id: string): Promise.<string, Error>`
+  Find the host where the peer with given id is located. Rejects with an error
+  when the peer is not found. Returns null when the peer is located on a host
+  without url.
+- `Host.listen(address: string, port: number): Promise.<Host, Error>`
+  Start listening on a web socket server. Returns the host it self once 
+  the server is started.
+- `Host.join(address: string, port: number): Promise.<Host, Error>`
+  Join another host, the hosts will form a network. Peers located on the 
+  joined host can be contacted.
+- `Host.close(): Promise.<Host, Error>`
+  Close the hosts web server socket. Returns the host itself.
 
 
 ### Peer
