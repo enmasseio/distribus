@@ -6,9 +6,9 @@ var host2 = new distribus.Host();
 
 // create two hosts
 Promise.all([
-  host1.listen('127.0.0.1', 3000),
-  host2.listen('127.0.0.1', 3001)
-])
+      host1.listen('127.0.0.1', 3000),
+      host2.listen('127.0.0.1', 3001)
+    ])
 
     // join the hosts
     .then(function () {

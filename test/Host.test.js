@@ -214,43 +214,32 @@ describe('Host', function () {
 
   describe('network', function () {
     var ADDRESS = '127.0.0.1';
-    var host1 = null;
-    var host2 = null;
-    var url1 = null;
-    var url2 = null;
-    var peer1 = null;
-    var peer2 = null;
+    var hosts = [];
+    var urls = [];
+    var peers = [];
+    var count = 3; // create 3 hosts and 3 peers
 
     beforeEach(function (done) {
       // create hosts
-      host1 = new Host();
-      host2 = new Host();
+      while (hosts.length < count) hosts.push(new Host());
 
       // find free ports
-      Promise.all([freeport(), freeport()])
+      Promise.all(hosts.map(function () {return freeport()}))
 
           // open hosts
           .then(function (ports) {
-            return Promise.all([
-              host1.listen(ADDRESS, ports[0]),
-              host2.listen(ADDRESS, ports[1])
-            ]);
+            return Promise.all(hosts.map(function (host, i) {return host.listen(ADDRESS, ports[i])}));
           })
 
           // create peers
           .then(function () {
-            return Promise.all([
-              host1.create('peer1'),
-              host2.create('peer2')
-            ]);
+            return Promise.all(hosts.map(function (host, i) {return host.create('peer' + i)}));
           })
 
-          .then(function (peers) {
-            peer1 = peers[0];
-            peer2 = peers[1];
+          .then(function (results) {
+            peers = results;
 
-            url1 = 'ws://' + host1.address + ':' + host1.port;
-            url2 = 'ws://' + host2.address + ':' + host2.port;
+            urls = hosts.map(function (host) {return 'ws://' + host.address + ':' + host.port;});
 
             done();
           });
@@ -258,63 +247,90 @@ describe('Host', function () {
 
     afterEach(function (done) {
       // close the hosts
-      var hosts = [];
-      if(host1) hosts.push(host1.close());
-      if(host2) hosts.push(host2.close());
-
-      Promise.all(hosts)
+      Promise.all(hosts.map(function (host) {host.close()}))
           .then(function () {
-            host1 = null;
-            host2 = null;
-            url1 = null;
-            url2 = null;
-            peer1 = null;
-            peer2 = null;
+            hosts = [];
+            peers= [];
+            urls = [];
 
             done();
           });
     });
 
     it('should join two hosts with each other', function (done) {
-      host1.join(url2)
+      hosts[0].join(urls[1])
           .then(function () {
-            assert.deepEqual(Object.keys(host1.connections), [url2]);
-            assert.deepEqual(Object.keys(host2.connections), [url1]);
+            assert.deepEqual(Object.keys(hosts[0].connections), [urls[1]]);
+            assert.deepEqual(Object.keys(hosts[1].connections), [urls[0]]);
+
+            done();
+          })
+    });
+
+    it('should join three hosts with each other', function (done) {
+      hosts[1].join(urls[0])
+          .then(function () {
+            // host1 and host0 are connected
+
+            return hosts[2].join(urls[0]);
+          })
+          .then(function () {
+            // host2 and host0 are connected -> host2 and host1 should be connected as well
+            assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[0], urls[1]].sort());
+
+            done();
+          })
+    });
+
+    it.skip('should join three hosts with each other (2)', function (done) {
+      hosts[0].join(urls[1])
+          .then(function () {
+            // host0 and host1 are connected
+
+            return hosts[1].join(urls[2]);
+          })
+          .then(function () {
+            // host1 and host2 are connected -> host0 and host2 should be connected as well
+            assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[0], urls[1]].sort());
 
             done();
           })
     });
 
     it('hosts should gracefully leave the network on leave', function (done) {
-      host1.join(url2)
+      hosts[0].join(urls[1])
           .then(function () {
-            assert.deepEqual(Object.keys(host1.connections), [url2]);
-            assert.deepEqual(Object.keys(host2.connections), [url1]);
+            assert.deepEqual(Object.keys(hosts[0].connections), [urls[1]]);
+            assert.deepEqual(Object.keys(hosts[1].connections), [urls[0]]);
 
-            return host2.close();
+            return hosts[1].close();
           })
           .then(function () {
-            assert.deepEqual(Object.keys(host1.connections), []);
-            assert.deepEqual(Object.keys(host2.connections), []);
+            assert.deepEqual(Object.keys(hosts[0].connections), []);
+            assert.deepEqual(Object.keys(hosts[1].connections), []);
 
             done();
           });
     });
 
     it('should find a peer located on the host itself', function (done) {
-      host1.find('peer1')
+      hosts[0].find('peer0')
           .then(function (url) {
-            assert.equal(url, host1.url);
-            assert.deepEqual(host1.addresses, {});
+            assert.equal(url, hosts[0].url);
+            assert.deepEqual(hosts[0].addresses, {});
             done();
           });
     });
 
     it('should find a peer located on the host itself when host has no url', function (done) {
       var host = new Host();
-      host.create('peer1')
+      host.create('peer0')
           .then(function () {
-            host.find('peer1')
+            host.find('peer0')
                 .then(function (url) {
                   assert.equal(url, null);
                   assert.deepEqual(host.addresses, {});
@@ -325,13 +341,13 @@ describe('Host', function () {
 
     it('should find a peer located on an other host', function (done) {
       // join the hosts
-      host1.join(url2)
+      hosts[0].join(urls[1])
 
           // find a peer located on host2 via host1
           .then(function () {
-            return host1.find('peer2').then(function (url) {
-              assert.equal(url, host2.url);
-              assert.deepEqual(host1.addresses, {peer2: host2.url});
+            return hosts[0].find('peer1').then(function (url) {
+              assert.equal(url, hosts[1].url);
+              assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
             });
           })
 
@@ -343,7 +359,7 @@ describe('Host', function () {
 
     it('should throw an error when a peer is not found', function (done) {
       // join the hosts
-      host1.find('non-existing-peer')
+      hosts[0].find('non-existing-peer')
           .then(function (url) {
             assert.ok(false, 'should not resolve');
           })
@@ -355,43 +371,43 @@ describe('Host', function () {
 
     it('should send a message to a peer located on another host', function (done) {
       // join the hosts
-      host1.join(url2)
+      hosts[0].join(urls[1])
           // send a message from one peer to another
           .then(function () {
             return new Promise(function (resolve, reject) {
-              peer2.on('message', function (sender, message) {
-                assert.equal(sender, 'peer1');
-                assert.equal(message, 'hello peer2');
+              peers[1].on('message', function (sender, message) {
+                assert.equal(sender, 'peer0');
+                assert.equal(message, 'hello peer1');
 
                 done()
               });
 
-              peer1.send('peer2', 'hello peer2');
+              peers[0].send('peer1', 'hello peer1');
             });
           })
     });
 
     it('should send a message to an peer on other host and receive a message', function (done) {
       // join the hosts
-      host1.join(url2)
+      hosts[0].join(urls[1])
           // send a message from one peer to another
           .then(function () {
             return new Promise(function (resolve, reject) {
-              peer2.on('message', function (from, message) {
-                assert.equal(from, 'peer1');
-                assert.equal(message, 'hello peer2');
+              peers[1].on('message', function (from, message) {
+                assert.equal(from, 'peer0');
+                assert.equal(message, 'hello peer1');
 
-                peer2.send(from, 'hi there');
+                peers[1].send(from, 'hi there');
               });
 
-              peer1.on('message', function (sender, message) {
-                assert.equal(sender, 'peer2');
+              peers[0].on('message', function (sender, message) {
+                assert.equal(sender, 'peer1');
                 assert.equal(message, 'hi there');
 
                 done()
               });
 
-              peer1.send('peer2', 'hello peer2');
+              peers[0].send('peer1', 'hello peer1');
             });
           })
     });
