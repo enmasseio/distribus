@@ -222,6 +222,7 @@ files and put them in the folder dist.
   A Host on a client can be connected to a Host on a server, which then serves
   as a proxy to route messages to peers located on the client.
 - Improve performance and optimize memory usage.
+- Implement support for WebRTC to connect clients.
 
 
 ## Test
