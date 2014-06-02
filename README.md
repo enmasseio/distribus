@@ -1,13 +1,17 @@
 # distribus
 
-A scalable, distributed message bus for node.js and the browser.
+A scalable, distributed message bus for node.js and the browser. One or multiple
+hosts are connected to each other in a peer-to-peer network. Peers can be 
+connected to any of the hosts in the network, and then send messages to each 
+other by their id.
+
+Distribus scales up to hundreds of hosts and millions of peers.
 
 Distribus can be used to:
 
 - Send messages between peers
-- Broadcast messages
-- Publish/subscribe topics
-
+- Broadcast messages (not yet implemented)
+- Publish/subscribe topics (not yet implemented)
 
 
 ## Install
@@ -208,6 +212,16 @@ Then, the project can be build by executing the build script via npm:
 This will build the library distribus.js and distribus.min.js from the source
 files and put them in the folder dist.
 -->
+
+
+## Roadmap
+
+- Implement efficient broadcasting.
+- Implement publish/subscribe mechanism.
+- Add support for Hosts and Peers in a client environment like a browser.
+  A Host on a client can be connected to a Host on a server, which then serves
+  as a proxy to route messages to peers located on the client.
+- Improve performance and optimize memory usage.
 
 
 ## Test

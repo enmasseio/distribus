@@ -217,7 +217,7 @@ describe('Host', function () {
     var hosts = [];
     var urls = [];
     var peers = [];
-    var count = 3; // create 3 hosts and 3 peers
+    var count = 4; // create 4 hosts and 4 peers
 
     beforeEach(function (done) {
       // create hosts
@@ -267,7 +267,7 @@ describe('Host', function () {
           })
     });
 
-    it('should join three hosts with each other', function (done) {
+    it('should join three hosts with each other (1)', function (done) {
       hosts[1].join(urls[0])
           .then(function () {
             // host1 and host0 are connected
@@ -284,7 +284,7 @@ describe('Host', function () {
           })
     });
 
-    it.skip('should join three hosts with each other (2)', function (done) {
+    it('should join three hosts with each other (2)', function (done) {
       hosts[0].join(urls[1])
           .then(function () {
             // host0 and host1 are connected
@@ -296,6 +296,47 @@ describe('Host', function () {
             assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1], urls[2]].sort());
             assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0], urls[2]].sort());
             assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[0], urls[1]].sort());
+
+            done();
+          })
+    });
+
+    it('should join three hosts with each other (3)', function (done) {
+      Promise.all([
+        hosts[1].join(urls[0]),
+        hosts[2].join(urls[0])
+      ])
+          .then(function () {
+            // all hosts should now be connected with each other
+            assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0], urls[2]].sort());
+            assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[0], urls[1]].sort());
+
+            done();
+          })
+    });
+
+    it('should join 2 networks of 2 hosts into 1 network with 4 hosts', function (done) {
+      Promise.all([
+        hosts[0].join(urls[1]),
+        hosts[2].join(urls[3])
+      ])
+          .then(function () {
+            // host0 and host1 are connected,
+            // and host2 and host3 are connected
+            assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1]].sort());
+            assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0]].sort());
+            assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[3]].sort());
+            assert.deepEqual(Object.keys(hosts[3].connections).sort(), [urls[2]].sort());
+
+            return hosts[1].join(urls[2]);
+          })
+          .then(function () {
+            // each of the 4 hosts should be connected with each of the other hosts
+            assert.deepEqual(Object.keys(hosts[0].connections).sort(), [urls[1], urls[2], urls[3]].sort());
+            assert.deepEqual(Object.keys(hosts[1].connections).sort(), [urls[0], urls[2], urls[3]].sort());
+            assert.deepEqual(Object.keys(hosts[2].connections).sort(), [urls[0], urls[1], urls[3]].sort());
+            assert.deepEqual(Object.keys(hosts[3].connections).sort(), [urls[0], urls[1], urls[2]].sort());
 
             done();
           })
@@ -316,6 +357,11 @@ describe('Host', function () {
             done();
           });
     });
+
+    // TODO: test with leaving a larger network
+
+    // TODO: test with socket errors
+
 
     it('should find a peer located on the host itself', function (done) {
       hosts[0].find('peer0')
