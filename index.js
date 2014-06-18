@@ -1,2 +1,2 @@
 exports.Host    = require('./lib/Host');
-exports.Promise = require('native-promise-only');
+exports.Promise = require('./lib/Promise');

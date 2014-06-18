@@ -47,48 +47,63 @@ describe('Host', function () {
     });
   });
 
-  it('should remove a peer by instance', function () {
+  it('should remove a peer by instance', function (done) {
     var PEER1 = 'peer1';
     var host = new Host();
 
     host.create(PEER1).then(function (peer1) {
       assert.deepEqual(Object.keys(host.peers), [PEER1]);
 
-      host.remove(peer1).then(function (result) {
-        assert.strictEqual(result, null);
-        assert.deepEqual(Object.keys(host.peers), []);
-        done();
-      });
+      host.remove(peer1)
+          .then(function (result) {
+            assert.strictEqual(result, null);
+            assert.deepEqual(Object.keys(host.peers), []);
+            done();
+          })
+          .catch(function (err) {
+            console.log(err.toString());
+            assert.ok(false, 'should not reject');
+          });
     });
   });
 
-  it('should remove a peer by id', function () {
+  it('should remove a peer by id', function (done) {
     var PEER1 = 'peer1';
     var host = new Host();
 
     host.create(PEER1).then(function (peer1) {
       assert.deepEqual(Object.keys(host.peers), [PEER1]);
 
-      host.remove(PEER1).then(function (result) {
-        assert.strictEqual(result, null);
-        assert.deepEqual(Object.keys(host.peers), []);
-        done();
-      });
+      host.remove(PEER1)
+          .then(function (result) {
+            assert.strictEqual(result, null);
+            assert.deepEqual(Object.keys(host.peers), []);
+            done();
+          })
+          .catch(function (err) {
+            console.log(err.toString());
+            assert.ok(false, 'should not reject');
+          });
     });
   });
 
-  it('should ignore undefined peer in function remove', function () {
+  it('should ignore undefined peer in function remove', function (done) {
     var PEER1 = 'peer1';
     var host = new Host();
 
     host.create(PEER1).then(function (peer1) {
       assert.deepEqual(Object.keys(host.peers), [PEER1]);
 
-      host.remove().then(function (result) {
-        assert.strictEqual(result, null);
-        assert.deepEqual(Object.keys(host.peers), [PEER1]);
-        done();
-      });
+      host.remove()
+          .then(function (result) {
+            assert.strictEqual(result, null);
+            assert.deepEqual(Object.keys(host.peers), [PEER1]);
+            done();
+          })
+          .catch(function (err) {
+            console.log(err.toString());
+            assert.ok(false, 'should not reject');
+          });
     });
   });
 

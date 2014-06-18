@@ -1,6 +1,6 @@
 var assert = require('assert'),
     distribus = require('../index'),
-    Promise = require('native-promise-only'),
+    Promise = require('bluebird'),
     Host = require('../lib/Host'),
     Peer = require('../lib/Peer');
 
