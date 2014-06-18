@@ -76,7 +76,7 @@ host.listen(address, port)
 
     // send messages
     .then(function (peers) {
-      return sendMessages1(peers);
+      return sendMessages2(peers);
     })
 
     // stop the host
@@ -122,5 +122,36 @@ function sendMessages1(peers) {
     }
 
     send();
+  });
+}
+
+function sendMessages2(peers) {
+  return new Promise(function (resolve, reject) {
+    var messagesLeft = messageCount;
+    var messagesTimer = 'sent '+ messageCount + ' messages';
+    var start = +new Date();
+    console.time(messagesTimer);
+
+    var sender = peers[1];
+    var recipient = 'peer' + (joinHostId || hostId) + '.0';
+    console.log('sending ' + messageCount + ' messages from ' + sender.id + ' to ' + recipient);
+
+    function sendComplete () {
+      messagesLeft--;
+      if (messagesLeft <= 0) {
+        console.timeEnd(messagesTimer);
+        var end = +new Date();
+        console.log('throughput:', Math.round(messageCount/ (end - start) * 1000) + ' messages/sec');
+
+        logMemory();
+
+        resolve();
+      }
+    }
+
+    for (var i = 0; i < messageCount; i++) {
+      sender.send(recipient, 'hello world')
+          .then(sendComplete);
+    }
   });
 }
