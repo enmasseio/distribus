@@ -218,6 +218,7 @@ files and put them in the folder dist.
 
 - Implement efficient broadcasting.
 - Implement publish/subscribe mechanism.
+- Create a bundle of the library for use in the browser.
 - Add support for Hosts and Peers in a client environment like a browser.
   A Host on a client can be connected to a Host on a server, which then serves
   as a proxy to route messages to peers located on the client.

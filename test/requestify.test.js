@@ -5,6 +5,8 @@ var assert = require('assert'),
     WebSocket = require('../lib/WebSocket'),
     requestify = require('../lib/requestify');
 
+// TODO: use https://www.npmjs.org/package/mocha-as-promised
+
 describe('requestify', function() {
 
   it ('should send a request via a socket and receive a response', function (done) {

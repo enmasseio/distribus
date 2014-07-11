@@ -2,6 +2,8 @@ var assert = require('assert'),
     Promise = require('native-promise-only'),
     Peer = require('../lib/Peer');
 
+// TODO: use https://www.npmjs.org/package/mocha-as-promised
+
 describe('Peer', function () {
 
   it('should receive a message', function (done) {

@@ -5,6 +5,7 @@ var assert = require('assert'),
     Peer = require('../lib/Peer'),
     WebSocket = require('../lib/WebSocket');
 
+// TODO: use https://www.npmjs.org/package/mocha-as-promised
 
 function freeport () {
   return new Promise(function (resolve, reject) {
@@ -186,7 +187,6 @@ describe('Host', function () {
 
                     client.close();
                     host.close();
-
                     done();
                   });
             }
