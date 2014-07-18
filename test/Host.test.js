@@ -58,7 +58,6 @@ describe('Host', function () {
           assert.deepEqual(Object.keys(host.peers), []);
         })
         .catch(function (err) {
-          console.log(err.toString());
           assert.ok(false, 'should not reject');
         });
 
@@ -79,7 +78,6 @@ describe('Host', function () {
           assert.deepEqual(Object.keys(host.peers), []);
         })
         .catch(function (err) {
-          console.log(err.toString());
           assert.ok(false, 'should not reject');
         });
   });
@@ -407,10 +405,12 @@ describe('Host', function () {
 
           // find peer1 located on host1 via host0
           .then(function () {
-            return hosts[0].find('peer1').then(function (url) {
-              assert.equal(url, hosts[1].url);
-              assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
-            });
+            return hosts[0].find('peer1')
+          })
+
+          .then(function (url) {
+            assert.equal(url, hosts[1].url);
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
           })
 
           // close host1, host0 should forget peer1
@@ -423,8 +423,41 @@ describe('Host', function () {
           })
     });
 
-    it.skip('hosts should not forget peers from non-gracefully disconnected hosts', function () {
-      // TODO
+    it('hosts should not forget peers from non-gracefully disconnected hosts', function () {
+      // join the hosts
+      var host1url = hosts[1].url;
+      return hosts[0].join(urls[1])
+          // find peer1 located on host1 via host0
+          .then(function () {
+            return hosts[0].find('peer1')
+          })
+
+          .then(function (url) {
+            assert.equal(url, hosts[1].url);
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+
+            assert.deepEqual(Object.keys(hosts[0].connections), [hosts[1].url]);
+            assert.deepEqual(Object.keys(hosts[1].connections), [hosts[0].url]);
+          })
+
+          .then(function () {
+            return new Promise(function (resolve, reject) {
+              // now we hard close host1
+              hosts[1].server.close();
+              hosts[1].server = null;
+              hosts[1].address = null;
+              hosts[1].port = null;
+              hosts[1].url = null;
+
+              // wait for a while so we can be sure host0 will have closed the broken connection
+              setTimeout(resolve, 100);
+            })
+          })
+
+          .then(function () {
+            assert.deepEqual(Object.keys(hosts[0].connections), []);
+            assert.deepEqual(hosts[0].addresses, {peer1: host1url});
+          })
     });
 
 
