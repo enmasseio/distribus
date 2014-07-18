@@ -295,6 +295,31 @@ describe('Host', function () {
           })
     });
 
+    it('should throw an error when trying to connect to a non-existing host', function () {
+      return freeport()
+          .then(function (port) {
+            var deadUrl = 'ws://' + ADDRESS + ':' + port;
+            return hosts[0].join(deadUrl);
+          })
+          .then(function () {
+            assert.ok(false, 'join should not succeed');
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: connect ECONNREFUSED');
+          });
+    });
+
+    it('should throw an error when trying listen at a non-free port', function () {
+      var host = new Host();
+      return host.listen(hosts[0].address, hosts[0].port)
+          .then(function () {
+            assert.ok(false, 'listen should not succeed');
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: listen EADDRINUSE');
+          });
+    });
+
     it('should join three hosts with each other (1)', function () {
       return hosts[1].join(urls[0])
           .then(function () {
@@ -398,7 +423,7 @@ describe('Host', function () {
           })
     });
 
-    it('hosts should not forget peers from non-gracefully disconnected hosts', function () {
+    it.skip('hosts should not forget peers from non-gracefully disconnected hosts', function () {
       // TODO
     });
 
