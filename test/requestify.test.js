@@ -1,23 +1,34 @@
 var assert = require('assert'),
-    freeport = require('freeport'),
     Promise = require('native-promise-only'),
     ws = require('ws'),
     WebSocket = require('../lib/WebSocket'),
     requestify = require('../lib/requestify');
 
-// TODO: use https://www.npmjs.org/package/mocha-as-promised
+function freeport () {
+  return new Promise(function (resolve, reject) {
+    var f = require('freeport');
+    f(function (err, port) {
+      err ? reject(err) : resolve(port);
+    })
+  });
+}
+
+function tryit (fn, done) {
+  try {
+    fn()
+  }
+  catch (err) {
+    done(err);
+  }
+}
 
 describe('requestify', function() {
 
-  it ('should send a request via a socket and receive a response', function (done) {
+  it ('should send a request via a socket and receive a response', function () {
     var server, client;
 
     // get a free port
-    new Promise(function (resolve, reject) {
-      freeport(function (err, port) {
-        err ? reject(err) : resolve(port);
-      })
-    })
+    return freeport()
 
         // open a server
         .then(function (port) {
@@ -74,8 +85,6 @@ describe('requestify', function() {
           client.close();
           server.close();
         })
-
-        .then(done);
   });
 
   it ('should send a notification via a socket (no response)', function (done) {
@@ -83,11 +92,7 @@ describe('requestify', function() {
 
 
     // get a free port
-    new Promise(function (resolve, reject) {
-      freeport(function (err, port) {
-        err ? reject(err) : resolve(port);
-      })
-    })
+    freeport()
 
         // open a server
         .then(function (port) {
@@ -98,7 +103,12 @@ describe('requestify', function() {
               client = requestify(client);
 
               client.onrequest = function onrequest (message) {
-                assert.equal(message, 'This is a notification');
+                try {
+                  assert.equal(message, 'This is a notification');
+                }
+                catch (err) {
+                  done(err);
+                }
 
                 client.close();
                 server.close();
@@ -124,11 +134,21 @@ describe('requestify', function() {
         .then(function () {
           client.notify('This is a notification')
               .then(function (response) {
-                assert.equal(response, null);
-                assert.ok(true, 'notification has been send');
+                try {
+                  assert.equal(response, null);
+                  assert.ok(true, 'notification has been send');
+                }
+                catch (err) {
+                  done(err);
+                }
               })
               .catch(function (err) {
-                assert.ok(false, 'should not fail');
+                try {
+                  assert.ok(false, 'should not fail');
+                }
+                catch (err) {
+                  done(err);
+                }
               });
         })
   });

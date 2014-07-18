@@ -19,7 +19,7 @@ Distribus can be used to:
 Install the library via npm:
 
     npm install distribus
-    
+
 
 ## Use
 

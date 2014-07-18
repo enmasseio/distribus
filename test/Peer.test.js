@@ -2,8 +2,6 @@ var assert = require('assert'),
     Promise = require('native-promise-only'),
     Peer = require('../lib/Peer');
 
-// TODO: use https://www.npmjs.org/package/mocha-as-promised
-
 describe('Peer', function () {
 
   it('should receive a message', function (done) {
@@ -14,8 +12,13 @@ describe('Peer', function () {
     var peer1 = new Peer(RECIPIENT);
 
     peer1.on('message', function (sender, message) {
-      assert.equal(sender, SENDER);
-      assert.equal(message, MESSAGE);
+      try {
+        assert.equal(sender, SENDER);
+        assert.equal(message, MESSAGE);
+      }
+      catch (err) {
+        done(err);
+      }
 
       done();
     });
@@ -30,9 +33,14 @@ describe('Peer', function () {
 
     var send = function (sender, recipient, message) {
       return new Promise(function (resolve, reject) {
-        assert(sender, SENDER);
-        assert(recipient, RECIPIENT);
-        assert(message, MESSAGE);
+        try {
+          assert(sender, SENDER);
+          assert(recipient, RECIPIENT);
+          assert(message, MESSAGE);
+        }
+        catch (err) {
+          done(err);
+        }
 
         resolve(null);
 
@@ -45,16 +53,21 @@ describe('Peer', function () {
     peer2.send(RECIPIENT, MESSAGE);
   });
 
-  it('should return a promise on sending a message', function () {
+  it('should return a promise on sending a message', function (done) {
     var RECIPIENT = 'peer1';
     var SENDER = 'peer2';
     var MESSAGE = 'Hello world!';
 
     var send = function (sender, recipient, message) {
       return new Promise(function (resolve, reject) {
-        assert(sender, SENDER);
-        assert(recipient, RECIPIENT);
-        assert(message, MESSAGE);
+        try {
+          assert(sender, SENDER);
+          assert(recipient, RECIPIENT);
+          assert(message, MESSAGE);
+        }
+        catch (err) {
+          done(err);
+        }
 
         resolve(null);
       });
@@ -64,6 +77,7 @@ describe('Peer', function () {
 
     var promise = peer2.send(RECIPIENT, MESSAGE);
     assert(promise instanceof Promise);
+    done();
   });
 
 });
