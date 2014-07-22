@@ -216,6 +216,7 @@ files and put them in the folder dist.
 
 ## Roadmap
 
+- Implement auto-reconnect between hosts.
 - Implement efficient broadcasting.
 - Implement publish/subscribe mechanism.
 - Create a bundle of the library for use in the browser.
