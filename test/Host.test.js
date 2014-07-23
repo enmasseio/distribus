@@ -567,4 +567,101 @@ describe('Host', function () {
 
   });
 
+
+  describe('pubsub', function () {
+
+    it('should subscribe to a topic', function () {
+      var host = new Host();
+      var cb = function () {};
+      host.subscribe('test', cb);
+
+      assert.deepEqual(host.topics, {test: [cb]});
+    });
+
+    it('should unsubscribe from a topic', function () {
+      var host = new Host();
+      var cb = function () {};
+      host.subscribe('test', cb);
+
+      assert.deepEqual(host.topics, {test: [cb]});
+
+      host.unsubscribe('test', cb);
+
+      assert.deepEqual(host.topics, {});
+    });
+
+    it('should publish a topic containing a string message', function (done) {
+      var host = new Host();
+      host.subscribe('test', function (message) {
+        assert.equal(message, 'foo bar');
+        done();
+      });
+
+      host.publish('test', 'foo bar');
+    });
+
+    it('should publish a topic containing an object as message', function (done) {
+      var host = new Host();
+      host.subscribe('test', function (message) {
+        assert.deepEqual(message, {foo:'bar'});
+        done();
+      });
+
+      host.publish('test', {foo:'bar'});
+    });
+
+    it('should publish a topic to multiple subscribers', function (done) {
+      var host = new Host();
+      var logs = [];
+
+      function logit(message) {
+        logs.push(message);
+
+        if (logs.length == 2) {
+          logs.sort();
+          assert.deepEqual(logs, ['A:hello', 'B:hello']);
+          done();
+        }
+      }
+
+      host.subscribe('test', function (message) {
+        assert.equal(message, 'hello');
+        logit('A:' + message);
+      });
+      host.subscribe('test', function (message) {
+        assert.equal(message, 'hello');
+        logit('B:' + message);
+      });
+
+      host.publish('test', 'hello');
+    });
+
+  });
+
+  it('should publish a topic and deliver to a subscriber on an other host', function (done) {
+    var host1 = new Host();
+    var host2 = new Host();
+    var ADDRESS = '127.0.0.1';
+
+    host1.subscribe('test', function (message) {
+      assert.equal(message, 'greeting from host2');
+
+      host1.close();
+      host2.close();
+
+      done();
+    });
+
+    Promise.all([freeport(), freeport()])
+        .then(function (ports) {
+          return Promise.all([host1.listen(ADDRESS, ports[0]), host2.listen(ADDRESS, ports[1])]);
+        })
+        .then(function () {
+          return host1.join(host2.url);
+        })
+        .then(function () {
+          host2.publish('test', 'greeting from host2');
+        });
+  });
+
 });

@@ -9,9 +9,9 @@ Distribus scales up to hundreds of hosts and millions of peers.
 
 Distribus can be used to:
 
-- Send messages between peers
+- Send messages between individual peers
+- Publish/subscribe topics
 - Broadcast messages (not yet implemented)
-- Publish/subscribe topics (not yet implemented)
 
 
 ## Install
@@ -126,6 +126,23 @@ Promise.all([
     });
 ```
 
+### Publish subscribe
+
+```js
+var distribus = require('../index');
+
+var host = new distribus.Host();
+
+host.subscribe('news', function (message) {
+  console.log('received message:', message);
+});
+
+host.publish('news', 'My first message!');
+
+// all subscribers of the topic (on any of the connected hosts) will receive
+// the message
+```
+
 
 ## API
 
@@ -146,23 +163,30 @@ var host = new distribus.Host();
 
 A Host has the following methods:
 
-- `Host.create(id: string) : Promise.<Peer, Error>`
+- `Host.close(): Promise.<Host, Error>`  
+  Close the hosts web server socket. Returns the host itself.
+- `Host.create(id: string) : Promise.<Peer, Error>`  
   Create a new `Peer`. Returns a promise which resolves with the new Peer.
   Rejects when a peer with the same id already exists.
-- `Host.remove(peer: Peer | string): Promise.<null, Error>`
-  Remove a peer from the host. The peer itself or it's id can be provided.
-- `Host.find(id: string): Promise.<string, Error>`
+- `Host.find(id: string): Promise.<string, Error>`  
   Find the host where the peer with given id is located. Rejects with an error
   when the peer is not found. Returns null when the peer is located on a host
   without url.
-- `Host.listen(address: string, port: number): Promise.<Host, Error>`
-  Start listening on a web socket server. Returns the host it self once 
-  the server is started.
-- `Host.join(address: string, port: number): Promise.<Host, Error>`
+- `Host.join(address: string, port: number): Promise.<Host, Error>`  
   Join another host, the hosts will form a network. Peers located on the 
   joined host can be contacted.
-- `Host.close(): Promise.<Host, Error>`
-  Close the hosts web server socket. Returns the host itself.
+- `Host.listen(address: string, port: number): Promise.<Host, Error>`  
+  Start listening on a web socket server. Returns the host it self once 
+  the server is started.
+- `Host.publish(topic: string, message: *)`  
+  Publish a message on a specific topic. All subscribers of the topic (on all
+  connected hosts) will receive the message.
+- `Host.remove(peer: Peer | string): Promise.<null, Error>`  
+  Remove a peer from the host. The peer itself or it's id can be provided.
+- `Host.subscribe(topic: string, callback: function)`  
+  Subscribe to a topic. The callback is called as `callback(message)`.
+- `Host.unsubscribe(topic: string, callback: function)`  
+  Unsubscribe from a topic.
 
 
 ### Peer
@@ -183,13 +207,13 @@ host.create('peer1')
 
 A Peer has the following functions:
 
-- `Peer.on(event, callback)`
+- `Peer.on(event, callback)`  
   Listen for an event. Available events: 
   
   - `'message'`. Receive a message. Syntax:
     `Peer.on('message', function (sender : String, message: *) {...})`
   
-- `Peer.send(recipient: String, message: *) : Promise.<null, Error>`
+- `Peer.send(recipient: String, message: *) : Promise.<null, Error>`  
   Send a message to an other peer. The message must be valid JSON.
 
 
@@ -218,7 +242,6 @@ files and put them in the folder dist.
 
 - Implement auto-reconnect between hosts.
 - Implement efficient broadcasting.
-- Implement publish/subscribe mechanism.
 - Create a bundle of the library for use in the browser.
 - Add support for Hosts and Peers in a client environment like a browser.
   A Host on a client can be connected to a Host on a server, which then serves
