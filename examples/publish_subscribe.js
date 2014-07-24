@@ -8,5 +8,5 @@ host.subscribe('news', function (message) {
 
 host.publish('news', 'My first message!');
 
-// all subscribers of the topic (on any of the connected hosts) will receive
+// all subscribers of the channel (on any of the connected hosts) will receive
 // the message

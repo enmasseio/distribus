@@ -10,7 +10,7 @@ Distribus scales up to hundreds of hosts and millions of peers.
 Distribus can be used to:
 
 - Send messages between individual peers
-- Publish/subscribe topics
+- Publish/subscribe to messages via channels
 - Broadcast messages (not yet implemented)
 
 
@@ -139,7 +139,7 @@ host.subscribe('news', function (message) {
 
 host.publish('news', 'My first message!');
 
-// all subscribers of the topic (on any of the connected hosts) will receive
+// all subscribers of the channel (on any of the connected hosts) will receive
 // the message
 ```
 
@@ -178,15 +178,15 @@ A Host has the following methods:
 - `Host.listen(address: string, port: number): Promise.<Host, Error>`  
   Start listening on a web socket server. Returns the host it self once 
   the server is started.
-- `Host.publish(topic: string, message: *)`  
-  Publish a message on a specific topic. All subscribers of the topic (on all
-  connected hosts) will receive the message.
+- `Host.publish(channel: string, message: *)`  
+  Publish a message on a specific channel. All subscribers of the channel (on 
+  all connected hosts) will receive the message.
 - `Host.remove(peer: Peer | string): Promise.<null, Error>`  
   Remove a peer from the host. The peer itself or it's id can be provided.
-- `Host.subscribe(topic: string, callback: function)`  
-  Subscribe to a topic. The callback is called as `callback(message)`.
-- `Host.unsubscribe(topic: string, callback: function)`  
-  Unsubscribe from a topic.
+- `Host.subscribe(channel: string, callback: function)`  
+  Subscribe to a channel. The callback is called as `callback(message)`.
+- `Host.unsubscribe(channel: string, callback: function)`  
+  Unsubscribe from a channel.
 
 
 ### Peer

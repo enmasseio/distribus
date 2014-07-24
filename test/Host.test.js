@@ -570,27 +570,27 @@ describe('Host', function () {
 
   describe('pubsub', function () {
 
-    it('should subscribe to a topic', function () {
+    it('should subscribe to a channel', function () {
       var host = new Host();
       var cb = function () {};
       host.subscribe('test', cb);
 
-      assert.deepEqual(host.topics, {test: [cb]});
+      assert.deepEqual(host.channels, {test: [cb]});
     });
 
-    it('should unsubscribe from a topic', function () {
+    it('should unsubscribe from a channel', function () {
       var host = new Host();
       var cb = function () {};
       host.subscribe('test', cb);
 
-      assert.deepEqual(host.topics, {test: [cb]});
+      assert.deepEqual(host.channels, {test: [cb]});
 
       host.unsubscribe('test', cb);
 
-      assert.deepEqual(host.topics, {});
+      assert.deepEqual(host.channels, {});
     });
 
-    it('should publish a topic containing a string message', function (done) {
+    it('should publish a channel containing a string message', function (done) {
       var host = new Host();
       host.subscribe('test', function (message) {
         assert.equal(message, 'foo bar');
@@ -600,7 +600,7 @@ describe('Host', function () {
       host.publish('test', 'foo bar');
     });
 
-    it('should publish a topic containing an object as message', function (done) {
+    it('should publish a channel containing an object as message', function (done) {
       var host = new Host();
       host.subscribe('test', function (message) {
         assert.deepEqual(message, {foo:'bar'});
@@ -610,7 +610,7 @@ describe('Host', function () {
       host.publish('test', {foo:'bar'});
     });
 
-    it('should publish a topic to multiple subscribers', function (done) {
+    it('should publish a channel to multiple subscribers', function (done) {
       var host = new Host();
       var logs = [];
 
@@ -638,7 +638,7 @@ describe('Host', function () {
 
   });
 
-  it('should publish a topic and deliver to a subscriber on an other host', function (done) {
+  it('should publish a channel and deliver to a subscriber on an other host', function (done) {
     var host1 = new Host();
     var host2 = new Host();
     var ADDRESS = '127.0.0.1';
