@@ -27,41 +27,26 @@ Install the library via npm:
 
 ```js
 // load the library
-var distribus = require('distribus'),
-    Promise = distribus.Promise;
+var distribus = require('distribus');
 
 // create a host
 var host = new distribus.Host();
 
 // create two peers
-Promise.all([
-      host.create('peer1'), 
-      host.create('peer2')
-    ])
-    .then(function (peers) {
-      var peer1 = peers[0];
-      var peer2 = peers[1];
+var peer1 = host.create('peer1');
+var peer2 = host.create('peer2');
 
-      // listen for messages on peer1
-      peer1.on('message', function (sender, message) {
-        console.log(this.id + ' received a message from ' + sender + ': ' + message);
+peer1.on('message', function (sender, message) {
+  console.log('peer1 received a message from ' + sender + ': ' + message);
 
-        // reply to the message
-        peer1.send(sender, 'Thanks for your message');
-      });
+  peer1.send(sender, 'Thanks for your message');
+});
 
-      // listen for messages on peer2
-      peer2.on('message', function (sender, message) {
-        console.log(this.id + ' received a message from ' + sender + ': ' + message);
+peer2.on('message', function (sender, message) {
+  console.log('peer2 received a message from ' + sender + ': ' + message);
+});
 
-        // remove both peers from the host
-        host.remove(peer1);
-        host.remove(peer2);
-      });
-
-      // send a message from peer2 to peer1
-      peer2.send('peer1', 'Hi peer1!');
-    });
+peer2.send('peer1', 'Hi peer1!');
 ```
 
 ### Multiple hosts
@@ -77,32 +62,26 @@ var PORT1 = 3000;
 var HOST2_URL = 'ws://localhost:3001';
 
 var host1 = new distribus.Host();
-var peer1;
+var peer1 = host1.create('peer1');
+
+peer1.on('message', function (from, message) {
+  console.log('Received a message from ' + from + ': "' + message + '"');
+
+  if (message.indexOf('hello') === 0) {
+    peer1.send(from, 'hi ' + from);
+  }
+});
 
 host1.listen('localhost', PORT1)
 
     .then(function () {
-      return host1.create('peer1');
-    })
-
-    .then(function (peer) {
-      peer1 = peer;
-
-      peer1.on('message', function (from, message) {
-        console.log('Received a message from ' + from + ': "' + message + '"');
-
-        if (message.indexOf('hello') === 0) {
-          peer1.send(from, 'hi ' + from);
-        }
-      });
-
       return host1.join(HOST2_URL);
     })
 
     .then(function () {
       console.log('Connected to host2');
 
-      var message = "hello peer2";
+      var message = 'hello peer2';
       console.log('Sending a message to peer2: "' + message + '"');
       peer1.send('peer2', message);
     })
@@ -110,36 +89,31 @@ host1.listen('localhost', PORT1)
     .catch(function (err) {
       console.log('host2 is not running, please start host2.js as well');
     });
+
 ```
 
 **host2.js**
 
 ```js
-var distribus = require('distribus');
+var distribus = require('../../index');
 
 var PORT2 = 3001;
 var HOST1_URL = 'ws://localhost:3000';
 
 var host2 = new distribus.Host();
-var peer2;
+var peer2 = host2.create('peer2');
+
+peer2.on('message', function (from, message) {
+  console.log('Received a message from ' + from + ': "' + message + '"');
+
+  if (message.indexOf('hello') === 0) {
+    peer2.send(from, 'hi ' + from);
+  }
+});
 
 host2.listen('localhost', PORT2)
 
     .then(function () {
-      return host2.create('peer2');
-    })
-
-    .then(function (peer) {
-      peer2 = peer;
-
-      peer2.on('message', function (from, message) {
-        console.log('Received a message from ' + from + ': "' + message + '"');
-
-        if (message.indexOf('hello') === 0) {
-          peer2.send(from, 'hi ' + from);
-        }
-      });
-
       return host2.join(HOST1_URL);
     })
 
@@ -194,11 +168,14 @@ var host = new distribus.Host();
 
 A Host has the following methods:
 
-- `Host.close(): Promise.<Host, Error>`  
+- `Host.close(): Promise.<Host, Error>`    
   Close the hosts web server socket. Returns the host itself.
-- `Host.create(id: string) : Promise.<Peer, Error>`  
-  Create a new `Peer`. Returns a promise which resolves with the new Peer.
-  Rejects when a peer with the same id already exists.
+- `Host.create(id: string) : Peer`    
+  Create a new `Peer`. 
+  Throws an error when a peer with the same id already exists on this host.
+  Does not check whether this id exists on any remote host (use `Host.find(id)`
+  to validate this before creating a peer, or even better, use a uuid to
+  prevent id collisions).
 - `Host.find(id: string): Promise.<string, Error>`  
   Find the host where the peer with given id is located. Rejects with an error
   when the peer is not found. Returns null when the peer is located on a host
