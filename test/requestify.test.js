@@ -1,7 +1,7 @@
 var assert = require('assert'),
     Promise = require('native-promise-only'),
     ws = require('ws'),
-    WebSocket = require('../lib/WebSocket'),
+    WebSocket = ws,
     requestify = require('../lib/requestify');
 
 function freeport () {
@@ -11,15 +11,6 @@ function freeport () {
       err ? reject(err) : resolve(port);
     })
   });
-}
-
-function tryit (fn, done) {
-  try {
-    fn()
-  }
-  catch (err) {
-    done(err);
-  }
 }
 
 describe('requestify', function() {

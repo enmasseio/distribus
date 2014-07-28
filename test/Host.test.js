@@ -1,9 +1,9 @@
 var assert = require('assert'),
+    rws = require('rws'),
     Promise = require('native-promise-only'),
     requestify = require('../lib/requestify'),
     Host = require('../lib/Host'),
-    Peer = require('../lib/Peer'),
-    WebSocket = require('../lib/WebSocket');
+    Peer = require('../lib/Peer');
 
 function freeport () {
   return new Promise(function (resolve, reject) {
@@ -178,7 +178,7 @@ describe('Host', function () {
           var host = new Host();
           host.listen(ADDRESS, PORT).then(function (h) {
             assert(h === host);
-            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
+            var client = new rws.ReconnectingWebSocket('ws://' + ADDRESS + ':' + PORT);
             requestify(client);
 
             client.onopen = function () {
@@ -212,7 +212,7 @@ describe('Host', function () {
     freeport()
         .then(function (PORT) {
           new Host().listen(ADDRESS, PORT).then(function (host) {
-            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
+            var client = new rws.ReconnectingWebSocket('ws://' + ADDRESS + ':' + PORT);
             requestify(client);
 
             client.onopen = function () {
@@ -304,6 +304,7 @@ describe('Host', function () {
           })
           .catch(function (err) {
             assert.equal(err.toString(), 'Error: connect ECONNREFUSED');
+            assert.deepEqual(hosts[0].connections, {});
           });
     });
 

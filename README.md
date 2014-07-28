@@ -66,65 +66,96 @@ Promise.all([
 
 ### Multiple hosts
 
+Create two files, `host1.js` and `host2.js` (see [examples/multiple_hosts](https://github.com/enmasseio/distribus/tree/master/examples/multiple_hosts)). Start them both with node.
+
+**host1.js**
+
 ```js
-var distribus = require('distribus'),
-    Promise = distribus.Promise;
+var distribus = require('distribus');
+
+var PORT1 = 3000;
+var HOST2_URL = 'ws://localhost:3001';
 
 var host1 = new distribus.Host();
-var host2 = new distribus.Host();
+var peer1;
 
-// create two hosts
-Promise.all([
-      host1.listen('127.0.0.1', 3000),
-      host2.listen('127.0.0.1', 3001)
-    ])
+host1.listen('localhost', PORT1)
 
-    // join the hosts
     .then(function () {
-      return host1.join(host2.url);
+      return host1.create('peer1');
     })
 
-    // create two peers, one on host1 and one on host2
-    .then(function () {
-      return Promise.all([
-        host1.create('peer1'),
-        host2.create('peer2')
-      ])
-    })
+    .then(function (peer) {
+      peer1 = peer;
 
-    .then(function (peers) {
-      var peer1 = peers[0];
-      var peer2 = peers[1];
-
-      // listen for messages
       peer1.on('message', function (from, message) {
-        console.log(this.id + ' received a message from ' + from + ': ' + message);
+        console.log('Received a message from ' + from + ': "' + message + '"');
 
-        // send a message back
-        peer1.send(from, 'Thanks for your message');
+        if (message.indexOf('hello') === 0) {
+          peer1.send(from, 'hi ' + from);
+        }
       });
 
-      // listen for messages
-      peer2.on('message', function (from, message) {
-        console.log(this.id + ' received a message from ' + from + ': ' + message);
+      return host1.join(HOST2_URL);
+    })
 
-        // remove the peers
-        host1.remove(peer1);
-        host2.remove(peer2);
-        peer1 = null;
-        peer2 = null;
+    .then(function () {
+      console.log('Connected to host2');
 
-        // close the hosts
-        host1.close();
-        host2.close();
-        host1 = null;
-        host2 = null;
-      });
+      var message = "hello peer2";
+      console.log('Sending a message to peer2: "' + message + '"');
+      peer1.send('peer2', message);
+    })
 
-      // send a message
-      peer2.send('peer1', 'Hi peer1!');
+    .catch(function (err) {
+      console.log('host2 is not running, please start host2.js as well');
     });
 ```
+
+**host2.js**
+
+```js
+var distribus = require('distribus');
+
+var PORT2 = 3001;
+var HOST1_URL = 'ws://localhost:3000';
+
+var host2 = new distribus.Host();
+var peer2;
+
+host2.listen('localhost', PORT2)
+
+    .then(function () {
+      return host2.create('peer2');
+    })
+
+    .then(function (peer) {
+      peer2 = peer;
+
+      peer2.on('message', function (from, message) {
+        console.log('Received a message from ' + from + ': "' + message + '"');
+
+        if (message.indexOf('hello') === 0) {
+          peer2.send(from, 'hi ' + from);
+        }
+      });
+
+      return host2.join(HOST1_URL);
+    })
+
+    .then(function () {
+      console.log('Connected to host1');
+
+      var message = "hello peer1";
+      console.log('Sending a message to peer1: "' + message + '"');
+      peer2.send('peer1', message);
+    })
+
+    .catch(function (err) {
+      console.log('host1 is not running, please start host1.js as well');
+    });
+```
+
 
 ### Publish subscribe
 
