@@ -1,7 +1,7 @@
 # History
 
 
-## not yet released, version 0.2.0
+## 2014-07-28, version 0.2.0
 
 - Implemented support for publish/subscribe in the peer-to-peer network.
 - Implemented `Host.get(id)` to get an existing Peer by its id.
