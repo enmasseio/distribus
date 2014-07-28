@@ -180,6 +180,8 @@ A Host has the following methods:
   Find the host where the peer with given id is located. Rejects with an error
   when the peer is not found. Returns null when the peer is located on a host
   without url.
+- `Host.get(id: string) : Peer`  
+  Get a local `Peer` by its id. Returns `null` if the peer does not exist.
 - `Host.join(address: string, port: number): Promise.<Host, Error>`  
   Join another host, the hosts will form a network. Peers located on the 
   joined host can be contacted.

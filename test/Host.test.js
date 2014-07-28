@@ -66,6 +66,20 @@ describe('Host', function () {
     host.remove();
   });
 
+  it('should get a peer by its id', function () {
+    var host = new Host();
+    var PEER1 = 'peer1';
+    var peer1 = host.create(PEER1);
+
+    assert.strictEqual(host.get(PEER1), peer1);
+  });
+
+  it('should return null when getting a non existing peer', function () {
+    var host = new Host();
+    var PEER1 = 'nonexisting';
+    assert.strictEqual(host.get(PEER1), null);
+  });
+
   it('should send a message from one peer to another', function (done) {
     var PEER1 = 'peer1';
     var PEER2 = 'peer2';
