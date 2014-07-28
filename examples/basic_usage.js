@@ -3,10 +3,7 @@ var distribus = require('../index'),
 
 var host = new distribus.Host();
 
-Promise.all([
-      host.create('peer1'),
-      host.create('peer2')
-    ])
+Promise.all([ host.create('peer1'), host.create('peer2') ])
     .then(function (peers) {
       var peer1 = peers[0];
       var peer2 = peers[1];
