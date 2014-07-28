@@ -4,8 +4,8 @@
 ## not yet released, version 0.2.0
 
 - Implemented support for publish/subscribe in the peer-to-peer network.
-- Changed `Host.create(id)` to a synchronous call (instead of returning
-  a Promise).
+- Changed `Host.create(id)` and `Host.remove(id)` to a synchronous calls 
+  (instead of returning Promises).
 - Fixed a bug in cleaning up after failing to connect to a non-existing host.
 
 

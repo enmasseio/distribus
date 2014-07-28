@@ -1,7 +1,7 @@
 {
   "name": "distribus",
   "version": "0.2.0-SNAPSHOT",
-  "description": "A scalable, distributed message bus for node.js and the browser",
+  "description": "A distributed message bus for node.js and the browser",
   "author": "Jos de Jong <wjosdejong@gmail.com> (https://github.com/josdejong)",
   "keywords": [
     "distributed",

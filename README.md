@@ -189,8 +189,8 @@ A Host has the following methods:
 - `Host.publish(channel: string, message: *)`  
   Publish a message on a specific channel. All subscribers of the channel (on 
   all connected hosts) will receive the message.
-- `Host.remove(peer: Peer | string): Promise.<null, Error>`  
-  Remove a peer from the host. The peer itself or it's id can be provided.
+- `Host.remove(peer: Peer | string)`  
+  Remove a peer from the host.
 - `Host.subscribe(channel: string, callback: function)`  
   Subscribe to a channel. The callback is called as `callback(message)`.
 - `Host.unsubscribe(channel: string, callback: function)`  
@@ -256,6 +256,16 @@ files and put them in the folder dist.
   as a proxy to route messages to peers located on the client.
 - Improve performance and optimize memory usage.
 - Implement support for WebRTC to connect clients.
+
+
+## Related
+
+- https://github.com/postaljs/postal.js
+- https://github.com/turbonetix/bus.io
+- https://github.com/amino/amino
+- https://github.com/mroderick/PubSubJS
+- https://github.com/faye/faye
+- https://github.com/component/emitter
 
 
 ## Test

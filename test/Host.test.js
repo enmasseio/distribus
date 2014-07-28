@@ -19,87 +19,51 @@ describe('Host', function () {
   it('should create a peer', function () {
     var PEER1 = 'peer1';
     var host = new Host();
+    var peer1 = host.create(PEER1);
 
-    return host.create(PEER1).then(function (peer1) {
-      assert(peer1 instanceof Peer);
-      assert.equal(peer1.id, PEER1);
-      assert.deepEqual(Object.keys(host.peers), [PEER1]);
-    });
+    assert(peer1 instanceof Peer);
+    assert.equal(peer1.id, PEER1);
+    assert.deepEqual(Object.keys(host.peers), [PEER1]);
   });
 
   it('should throw an error when creating a peer one id twice', function () {
     var PEER1 = 'peer1';
     var host = new Host();
 
-    return host.create(PEER1)
-        .then(function (peer1) {
-          return host.create(PEER1);
-        })
-        .then(function () {
-          assert.ok(false, 'should not be created twice');
-        })
-        .catch(function (err) {
-          assert.equal(err.toString(), 'Error: Id already exists (id: peer1)');
-        });
+    host.create(PEER1);
+
+    assert.throws(function () {
+      host.create(PEER1);
+    }, /Error: Id already exists \(id: peer1\)/);
   });
 
   it('should remove a peer by instance', function () {
     var PEER1 = 'peer1';
     var host = new Host();
 
-    return host.create(PEER1)
-        .then(function (peer1) {
-          assert.deepEqual(Object.keys(host.peers), [PEER1]);
+    var peer1 = host.create(PEER1);
 
-          return host.remove(peer1)
-        })
-        .then(function (result) {
-          assert.strictEqual(result, null);
-          assert.deepEqual(Object.keys(host.peers), []);
-        })
-        .catch(function (err) {
-          assert.ok(false, 'should not reject');
-        });
+    assert.deepEqual(Object.keys(host.peers), [PEER1]);
 
+    host.remove(peer1);
+
+    assert.deepEqual(Object.keys(host.peers), []);
   });
 
   it('should remove a peer by id', function () {
     var PEER1 = 'peer1';
     var host = new Host();
 
-    return host.create(PEER1)
-        .then(function (peer1) {
-          assert.deepEqual(Object.keys(host.peers), [PEER1]);
+    host.create(PEER1);
+    assert.deepEqual(Object.keys(host.peers), [PEER1]);
 
-          return host.remove(PEER1)
-        })
-        .then(function (result) {
-          assert.strictEqual(result, null);
-          assert.deepEqual(Object.keys(host.peers), []);
-        })
-        .catch(function (err) {
-          assert.ok(false, 'should not reject');
-        });
+    host.remove(PEER1);
+    assert.deepEqual(Object.keys(host.peers), []);
   });
 
   it('should ignore undefined peer in function remove', function () {
-    var PEER1 = 'peer1';
     var host = new Host();
-
-    return host.create(PEER1).then(function (peer1) {
-          assert.deepEqual(Object.keys(host.peers), [PEER1]);
-
-          return host.remove();
-        })
-        .then(function (result) {
-          assert.strictEqual(result, null);
-          assert.deepEqual(Object.keys(host.peers), [PEER1]);
-        })
-        .catch(function (err) {
-          console.log(err.toString());
-          assert.ok(false, 'should not reject');
-        });
-
+    host.remove();
   });
 
   it('should send a message from one peer to another', function (done) {
@@ -107,48 +71,34 @@ describe('Host', function () {
     var PEER2 = 'peer2';
     var MESSAGE = 'Hello world!';
     var host = new Host();
+    var peer1 = host.create(PEER1);
+    var peer2 = host.create(PEER2);
 
-    Promise.all([host.create(PEER1), host.create(PEER2)])
-        .then(function (peers) {
-          var peer1 = peers[0];
-          var peer2 = peers[1];
+    peer1.on('message', function (sender, message) {
+      try {
+        assert.equal(sender, PEER2);
+        assert.equal(message, MESSAGE);
+      }
+      catch (err) {
+        done(err);
+      }
+      done();
+    });
 
-          peer1.on('message', function (sender, message) {
-            try {
-              assert.equal(sender, PEER2);
-              assert.equal(message, MESSAGE);
-            }
-            catch (err) {
-              done(err);
-            }
-            done();
-          });
-
-          peer2.send(PEER1, MESSAGE);
-        });
+    peer2.send(PEER1, MESSAGE);
   });
 
-  it('should receive a confirmation after a message is sent', function (done) {
+  it('should receive a confirmation after a message is sent', function () {
     var PEER1 = 'peer1';
     var PEER2 = 'peer2';
     var MESSAGE = 'Hello world!';
     var host = new Host();
+    var peer1 = host.create(PEER1);
+    var peer2 = host.create(PEER2);
 
-    Promise.all([host.create(PEER1), host.create(PEER2)])
-        .then(function (peers) {
-          var peer1 = peers[0];
-          var peer2 = peers[1];
-
-          peer2.send(PEER1, MESSAGE)
-              .then(function (confirm) {
-                try {
-                  assert.strictEqual(confirm, null);
-                }
-                catch (err) {
-                  done(err);
-                }
-                done();
-              });
+    return peer2.send(PEER1, MESSAGE)
+        .then(function (confirm) {
+          assert.strictEqual(confirm, null);
         });
   });
 
@@ -157,11 +107,9 @@ describe('Host', function () {
     var PEER2 = 'peer2'; // a non-existing peer
     var MESSAGE = 'Hello world!';
     var host = new Host();
+    var peer1 = host.create(PEER1);
 
-    return host.create(PEER1)
-        .then(function (peer1) {
-          return peer1.send(PEER2, MESSAGE)
-        })
+    return peer1.send(PEER2, MESSAGE)
         .then(function (confirm) {
           assert.ok(false, 'should not succeed')
         })
@@ -265,11 +213,9 @@ describe('Host', function () {
 
           // create peers
           .then(function () {
-            return Promise.all(hosts.map(function (host, i) {return host.create('peer' + i)}));
-          })
-
-          .then(function (results) {
-            peers = results;
+            peers = hosts.map(function (host, i) {
+              return host.create('peer' + i)
+            });
 
             urls = hosts.map(function (host) {return 'ws://' + host.address + ':' + host.port;});
           });
@@ -477,10 +423,8 @@ describe('Host', function () {
 
     it('should find a peer located on the host itself when host has no url', function () {
       var host = new Host();
-      return host.create('peer0')
-          .then(function () {
-            return host.find('peer0')
-          })
+      var peer0 = host.create('peer0');
+      return host.find('peer0')
           .then(function (url) {
             assert.equal(url, null);
             assert.deepEqual(host.addresses, {});
