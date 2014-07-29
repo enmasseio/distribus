@@ -17,8 +17,6 @@ function freeport () {
 
 describe('Host', function () {
 
-  // TODO: test Host.config
-
   it('should set config options at construction', function () {
     var options = {
       reconnectTimeout: 1000,
@@ -624,7 +622,7 @@ describe('Host', function () {
           })
     });
 
-    it('should send a message to an peer on other host and receive a message', function (done) {
+    it('should send a message to a peer on other host and receive a reply', function (done) {
       // join the hosts
       hosts[0].join(urls[1])
           // send a message from one peer to another
@@ -657,6 +655,72 @@ describe('Host', function () {
           })
     });
 
+    it('should throw a meaningful error when sending a message to a non-existing remote peer', function () {
+      // join the hosts
+      return hosts[0].join(urls[1])
+          .then(function () {
+            // send a message to a non-existing peer
+            return peers[0].send('nopeer', 'hello nopeer')
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: Peer not found (id: nopeer)');
+            assert.deepEqual(hosts[0].addresses, {});
+          })
+    });
+
+    it('should throw a meaningful error when sending a message to a deleted remote peer', function () {
+      // join the hosts
+      return hosts[0].join(urls[1])
+          .then(function () {
+            // find a peer located on host 1 so it will be cached on host 0
+            return hosts[0].find('peer1');
+          })
+          .then(function () {
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+
+            // delete the peer
+            hosts[1].remove('peer1');
+
+            // send a message to the deleted peer
+
+            return peers[0].send('peer1', 'hello peer1')
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: Peer not found (id: peer1)');
+
+            // the deleted peer should be removed from cache
+            assert.deepEqual(hosts[0].addresses, {});
+          })
+    });
+
+    it('should throw a meaningful error when sending a message to an unreachable remote peer', function () {
+      // join the hosts
+      return hosts[0].join(urls[1])
+          .then(function () {
+            // find a peer located on host 1 so it will be cached on host 0
+            return hosts[0].find('peer1');
+          })
+          .then(function () {
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+
+            // close the connection
+            hosts[1].connections[hosts[0].url].close();
+
+            return new Promise(function (resolve) {
+              setTimeout(resolve, 100)
+            })
+          })
+          .then(function () {
+            // send a message to the peer
+            return peers[0].send('peer1', 'hello peer1')
+          })
+          .catch(function (err) {
+            assert.equal(err.toString().indexOf('Error: Peer unreachable (id: peer1, url:'), 0);
+
+            // the deleted peer should be still be in cache
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+          })
+    });
   });
 
 

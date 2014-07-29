@@ -6,6 +6,8 @@
 - Implemented `Host.config`, with options `reconnectTimeout`, `reconnectDelay` 
   and `reconnectDecay`.
 - Implemented automatic reconnection of hosts.
+- Throws meaningful errors when sending a message to non-existing, deleted,
+  or unreachable peers.
 
 
 ## 2014-07-28, version 0.2.0
