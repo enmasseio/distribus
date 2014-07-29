@@ -163,13 +163,27 @@ The distribus namespace contains the following prototypes:
 A Host can be created as 
 
 ```js
-var host = new distribus.Host();
+var host = new distribus.Host([options]);
 ```
+
+The available options are listed under `Host.config([options])`.
 
 A Host has the following methods:
 
 - `Host.close(): Promise.<Host, Error>`    
   Close the hosts web server socket. Returns the host itself.
+- `Host.config([options]): Object`  
+  Apply configuration options to the host, and/or retrieve the current 
+  configuration. Available options:
+  - `reconnectTimeout`  
+    Timeout in milliseconds for giving up reconnecting. 300000 ms (5 minutes) 
+    by default.
+  - `reconnectDelay`  
+    Initial delay in milliseconds for trying to reconnect. For consecutive 
+    reconnect trials, the delay decays with a factor `reconnectDecay`. 
+    The initial delay is 1000 ms (1 second) by default.
+  - `reconnectDecay`  
+    Decay for the reconnect delay. 2 by default.
 - `Host.create(id: string) : Peer`    
   Create a new `Peer`. 
   Throws an error when a peer with the same id already exists on this host.
