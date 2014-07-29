@@ -264,7 +264,6 @@ files and put them in the folder dist.
 
 ## Roadmap
 
-- Implement auto-reconnect between hosts.
 - Implement efficient broadcasting.
 - Create a bundle of the library for use in the browser.
 - Add support for Hosts and Peers in a client environment like a browser.

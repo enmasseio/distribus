@@ -1,9 +1,10 @@
-var assert = require('assert'),
-    rws = require('rws'),
-    Promise = require('native-promise-only'),
-    requestify = require('../lib/requestify'),
-    Host = require('../lib/Host'),
-    Peer = require('../lib/Peer');
+var assert = require('assert');
+var WebSocket = require('ws');
+var WebSocketServer = require('ws').Server;
+var Promise = require('native-promise-only');
+var requestify = require('../lib/requestify');
+var Host = require('../lib/Host');
+var Peer = require('../lib/Peer');
 
 function freeport () {
   return new Promise(function (resolve, reject) {
@@ -168,7 +169,7 @@ describe('Host', function () {
           var host = new Host();
           host.listen(ADDRESS, PORT).then(function (h) {
             assert(h === host);
-            var client = new rws.ReconnectingWebSocket('ws://' + ADDRESS + ':' + PORT);
+            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
             requestify(client);
 
             client.onopen = function () {
@@ -202,7 +203,7 @@ describe('Host', function () {
     freeport()
         .then(function (PORT) {
           new Host().listen(ADDRESS, PORT).then(function (host) {
-            var client = new rws.ReconnectingWebSocket('ws://' + ADDRESS + ':' + PORT);
+            var client = new WebSocket('ws://' + ADDRESS + ':' + PORT);
             requestify(client);
 
             client.onopen = function () {
