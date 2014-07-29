@@ -16,6 +16,34 @@ function freeport () {
 
 describe('Host', function () {
 
+  // TODO: test Host.config
+
+  it('should set config options at construction', function () {
+    var options = {
+      reconnectTimeout: 1000,
+      reconnectDelay: 100,
+      reconnectDecay: 1
+    };
+    var host = new Host(options);
+
+    assert.deepEqual(host.config(), options);
+
+  });
+
+  it('should get and set config options via Host.config', function () {
+    var host = new Host();
+
+    var options = {
+      reconnectTimeout: 1000,
+      reconnectDelay: 100,
+      reconnectDecay: 2
+    };
+
+    host.config(options);
+
+    assert.deepEqual(host.config(), options);
+  });
+
   it('should create a peer', function () {
     var PEER1 = 'peer1';
     var host = new Host();
@@ -421,6 +449,110 @@ describe('Host', function () {
           })
     });
 
+    it('should auto-reconnect when the connection closes', function () {
+      var reconnectDelay = 200;
+      hosts[0].config({ reconnectDelay: reconnectDelay });
+      hosts[1].config({ reconnectDelay: reconnectDelay });
+
+      // join the hosts
+      return hosts[0].join(urls[1])
+          // find peer1 located on host1 via host0
+          .then(function () {
+            return hosts[0].find('peer1')
+          })
+          .then(function () {
+            return hosts[1].find('peer0')
+          })
+          .then(function () {
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+            assert.deepEqual(hosts[1].addresses, {peer0: hosts[0].url});
+
+            // hard close the connection
+            hosts[1].connections[hosts[0].url].close();
+
+            // wait for a little while so the socket is closed on both sides
+            return new Promise(function (resolve) {
+              setTimeout(resolve, reconnectDelay / 2);
+            });
+          })
+          .then(function () {
+            // connections should be gone
+            assert.deepEqual(Object.keys(hosts[0].connections), []);
+            assert.deepEqual(Object.keys(hosts[1].connections), []);
+
+            // peers should still be there
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+            assert.deepEqual(hosts[1].addresses, {peer0: hosts[0].url});
+
+            return new Promise(function (resolve) {
+              setTimeout(resolve, reconnectDelay); // (this delay adds up to the earlier delay/2)
+            });
+          })
+          .then(function () {
+            // now the hosts should be reconnected
+            assert.deepEqual(Object.keys(hosts[0].connections), [hosts[1].url]);
+            assert.deepEqual(Object.keys(hosts[1].connections), [hosts[0].url]);
+
+            // peers should still be there
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+            assert.deepEqual(hosts[1].addresses, {peer0: hosts[0].url});
+          })
+    });
+
+    it('should cancel auto-reconnect when the reconnect timeout is exceeded', function () {
+      var delay = 400; // larger than timeout!
+      var timeout = 200;
+      hosts[0].config({ reconnectDelay: delay, reconnectTimeout: timeout });
+      hosts[1].config({ reconnectDelay: delay, reconnectTimeout: timeout });
+
+      // join the hosts
+      return hosts[0].join(urls[1])
+          // find peer1 located on host1 via host0
+          .then(function () {
+            return hosts[0].find('peer1')
+          })
+          .then(function () {
+            return hosts[1].find('peer0')
+          })
+          .then(function () {
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+            assert.deepEqual(hosts[1].addresses, {peer0: hosts[0].url});
+
+            // hard close the connection
+            hosts[1].connections[hosts[0].url].close();
+
+            // wait for a little while so the socket is closed on both sides
+            return new Promise(function (resolve) {
+              setTimeout(resolve, timeout / 2);
+            });
+          })
+          .then(function () {
+            // connections should be gone
+            assert.deepEqual(Object.keys(hosts[0].connections), []);
+            assert.deepEqual(Object.keys(hosts[1].connections), []);
+
+            // peers should still be there
+            assert.deepEqual(hosts[0].addresses, {peer1: hosts[1].url});
+            assert.deepEqual(hosts[1].addresses, {peer0: hosts[0].url});
+
+            return new Promise(function (resolve) {
+              setTimeout(resolve, delay); // (this delay adds up to the earlier timeout/2)
+            });
+          })
+          .then(function () {
+            // no more timeouts sould be running now
+            assert.deepEqual(Object.keys(hosts[0].timers), []);
+            assert.deepEqual(Object.keys(hosts[1].timers), []);
+
+            // now the hosts should still be disconnected
+            assert.deepEqual(Object.keys(hosts[0].connections), []);
+            assert.deepEqual(Object.keys(hosts[1].connections), []);
+
+            // peers in cache should be cleaned up now
+            assert.deepEqual(hosts[0].addresses, {});
+            assert.deepEqual(hosts[1].addresses, {});
+          })
+    });
 
     // TODO: test with leaving a larger network
 

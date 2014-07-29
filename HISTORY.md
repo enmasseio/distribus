@@ -1,6 +1,13 @@
 # History
 
 
+## not yet released, version 0.3.0
+
+- Implemented `Host.config`, with options `reconnectTimeout`, `reconnectDelay` 
+  and `reconnectDecay`.
+- Implemented automatic reconnection of hosts.
+
+
 ## 2014-07-28, version 0.2.0
 
 - Implemented support for publish/subscribe in the peer-to-peer network.
