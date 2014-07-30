@@ -115,9 +115,9 @@ describe('Host', function () {
     var peer1 = host.create(PEER1);
     var peer2 = host.create(PEER2);
 
-    peer1.on('message', function (sender, message) {
+    peer1.on('message', function (from, message) {
       try {
-        assert.equal(sender, PEER2);
+        assert.equal(from, PEER2);
         assert.equal(message, MESSAGE);
       }
       catch (err) {
@@ -606,9 +606,9 @@ describe('Host', function () {
           // send a message from one peer to another
           .then(function () {
             return new Promise(function (resolve, reject) {
-              peers[1].on('message', function (sender, message) {
+              peers[1].on('message', function (from, message) {
                 try {
-                  assert.equal(sender, 'peer0');
+                  assert.equal(from, 'peer0');
                   assert.equal(message, 'hello peer1');
                 } catch (err) {
                   done(err)
@@ -639,9 +639,9 @@ describe('Host', function () {
                 peers[1].send(from, 'hi there');
               });
 
-              peers[0].on('message', function (sender, message) {
+              peers[0].on('message', function (from, message) {
                 try {
-                  assert.equal(sender, 'peer1');
+                  assert.equal(from, 'peer1');
                   assert.equal(message, 'hi there');
                 } catch (err) {
                   done(err)

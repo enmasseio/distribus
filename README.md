@@ -38,14 +38,14 @@ var host = new distribus.Host();
 var peer1 = host.create('peer1');
 var peer2 = host.create('peer2');
 
-peer1.on('message', function (sender, message) {
-  console.log('peer1 received a message from ' + sender + ': ' + message);
+peer1.on('message', function (from, message) {
+  console.log('peer1 received a message from ' + from + ': ' + message);
 
-  peer1.send(sender, 'Thanks for your message');
+  peer1.send(from, 'Thanks for your message');
 });
 
-peer2.on('message', function (sender, message) {
-  console.log('peer2 received a message from ' + sender + ': ' + message);
+peer2.on('message', function (from, message) {
+  console.log('peer2 received a message from ' + from + ': ' + message);
 });
 
 peer2.send('peer1', 'Hi peer1!');
@@ -240,9 +240,9 @@ A Peer has the following functions:
   Listen for an event. Available events: 
   
   - `'message'`. Receive a message. Syntax:
-    `Peer.on('message', function (sender : String, message: *) {...})`
+    `Peer.on('message', function (from : String, message: *) {...})`
   
-- `Peer.send(recipient: String, message: *) : Promise.<null, Error>`  
+- `Peer.send(to: String, message: *) : Promise.<null, Error>`  
   Send a message to an other peer. The message must be valid JSON.
 
 

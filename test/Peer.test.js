@@ -5,15 +5,15 @@ var assert = require('assert'),
 describe('Peer', function () {
 
   it('should receive a message', function (done) {
-    var RECIPIENT = 'peer1';
-    var SENDER = 'peer2';
+    var TO = 'peer1';
+    var FROM = 'peer2';
     var MESSAGE = 'Hello world!';
 
-    var peer1 = new Peer(RECIPIENT);
+    var peer1 = new Peer(TO);
 
-    peer1.on('message', function (sender, message) {
+    peer1.on('message', function (from, message) {
       try {
-        assert.equal(sender, SENDER);
+        assert.equal(from, FROM);
         assert.equal(message, MESSAGE);
       }
       catch (err) {
@@ -23,19 +23,19 @@ describe('Peer', function () {
       done();
     });
 
-    peer1.emit('message', SENDER, MESSAGE);
+    peer1.emit('message', FROM, MESSAGE);
   });
 
   it('should send a message', function (done) {
-    var RECIPIENT = 'peer1';
-    var SENDER = 'peer2';
+    var TO = 'peer1';
+    var FROM = 'peer2';
     var MESSAGE = 'Hello world!';
 
-    var send = function (sender, recipient, message) {
+    var send = function (from, to, message) {
       return new Promise(function (resolve, reject) {
         try {
-          assert(sender, SENDER);
-          assert(recipient, RECIPIENT);
+          assert(from, FROM);
+          assert(to, TO);
           assert(message, MESSAGE);
         }
         catch (err) {
@@ -48,21 +48,21 @@ describe('Peer', function () {
       });
     };
 
-    var peer2 = new Peer(SENDER, send);
+    var peer2 = new Peer(FROM, send);
 
-    peer2.send(RECIPIENT, MESSAGE);
+    peer2.send(TO, MESSAGE);
   });
 
   it('should return a promise on sending a message', function (done) {
-    var RECIPIENT = 'peer1';
-    var SENDER = 'peer2';
+    var TO = 'peer1';
+    var FROM = 'peer2';
     var MESSAGE = 'Hello world!';
 
-    var send = function (sender, recipient, message) {
+    var send = function (from, to, message) {
       return new Promise(function (resolve, reject) {
         try {
-          assert(sender, SENDER);
-          assert(recipient, RECIPIENT);
+          assert(from, FROM);
+          assert(to, TO);
           assert(message, MESSAGE);
         }
         catch (err) {
@@ -73,9 +73,9 @@ describe('Peer', function () {
       });
     };
 
-    var peer2 = new Peer(SENDER, send);
+    var peer2 = new Peer(FROM, send);
 
-    var promise = peer2.send(RECIPIENT, MESSAGE);
+    var promise = peer2.send(TO, MESSAGE);
     assert(promise instanceof Promise);
     done();
   });
