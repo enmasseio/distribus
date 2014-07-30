@@ -1,5 +1,5 @@
 var assert = require('assert'),
-    Promise = require('native-promise-only'),
+    Promise = require('bluebird'),
     ws = require('ws'),
     WebSocket = ws,
     requestify = require('../lib/requestify');

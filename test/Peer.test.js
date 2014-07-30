@@ -1,5 +1,5 @@
 var assert = require('assert'),
-    Promise = require('native-promise-only'),
+    Promise = require('bluebird'),
     Peer = require('../lib/Peer');
 
 describe('Peer', function () {
