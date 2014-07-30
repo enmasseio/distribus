@@ -11,7 +11,9 @@ Distribus can be used to:
 
 - Send messages between individual peers
 - Publish/subscribe to messages via channels
-- Broadcast messages (not yet implemented)
+- Broadcast messages *(not yet implemented)*
+
+![distribus architecture](https://raw.github.com/enmasseio/distribus/master/img/distribus.png)
 
 
 ## Install
@@ -23,7 +25,7 @@ Install the library via npm:
 
 ## Use
 
-### A single host
+### Sending messages between peers
 
 ```js
 // load the library
@@ -47,6 +49,27 @@ peer2.on('message', function (sender, message) {
 });
 
 peer2.send('peer1', 'Hi peer1!');
+```
+
+### Publish and subscribe
+
+```js
+// load the library
+var distribus = require('distribus');
+
+// create a host
+var host = new distribus.Host();
+
+// subscribe to a channel
+host.subscribe('news', function (message) {
+  console.log('received message:', message);
+});
+
+// publish a message
+host.publish('news', 'My first message!');
+
+// all subscribers of the channel (on any of the connected hosts) will receive
+// the message
 ```
 
 ### Multiple hosts
@@ -128,24 +151,6 @@ host2.listen('localhost', PORT2)
     .catch(function (err) {
       console.log('host1 is not running, please start host1.js as well');
     });
-```
-
-
-### Publish subscribe
-
-```js
-var distribus = require('../index');
-
-var host = new distribus.Host();
-
-host.subscribe('news', function (message) {
-  console.log('received message:', message);
-});
-
-host.publish('news', 'My first message!');
-
-// all subscribers of the channel (on any of the connected hosts) will receive
-// the message
 ```
 
 
@@ -264,7 +269,9 @@ files and put them in the folder dist.
 
 ## Roadmap
 
-- Implement efficient broadcasting.
+- Implement broadcasting.
+- Implement wildcards to address a group of peers
+- Implement wildcards to subscribe to a group of channels.
 - Create a bundle of the library for use in the browser.
 - Add support for Hosts and Peers in a client environment like a browser.
   A Host on a client can be connected to a Host on a server, which then serves

@@ -1,7 +1,7 @@
 # History
 
 
-## not yet released, version 0.3.0
+## 2014-07-30, version 0.3.0
 
 - Implemented `Host.config`, with options `reconnectTimeout`, `reconnectDelay` 
   and `reconnectDecay`.
