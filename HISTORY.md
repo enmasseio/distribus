@@ -4,6 +4,7 @@
 ## not yet released, version 0.4.0
 
 - Function `host.send(from, to, message)` is now publicly available.
+- Implemented support for setting a property `networkId` on a Host.
 
 
 ## 2014-07-30, version 0.3.0

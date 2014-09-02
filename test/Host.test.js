@@ -280,6 +280,42 @@ describe('Host', function () {
           })
     });
 
+    it('should join two hosts with each other with a networkId', function () {
+      hosts[0].networkId = 'foo';
+      hosts[1].networkId = 'foo';
+      return hosts[0].join(urls[1])
+          .then(function () {
+            assert.deepEqual(Object.keys(hosts[0].connections), [urls[1]]);
+            assert.deepEqual(Object.keys(hosts[1].connections), [urls[0]]);
+          })
+    });
+
+    it('should reject joining two hosts with a differing networkId', function () {
+      hosts[0].networkId = 'foo';
+      hosts[1].networkId = 'bar';
+      return hosts[0].join(urls[1])
+          .then(function () {
+            assert.ok(false, 'should not resolve');
+          })
+          .catch(function (err) {
+            assert.equal(err.toString(), 'Error: Network id mismatch (foo !== bar)');
+            assert.equal(hosts[0].networkId, 'foo');
+            assert.equal(hosts[1].networkId, 'bar');
+            assert.equal(Object.keys(hosts[0].connections).length, 0);
+            assert.equal(Object.keys(hosts[1].connections).length, 0);
+          })
+    });
+
+    it('should inherit networkId of joined host', function () {
+      hosts[0].networkId = null; // undefined networkId
+      hosts[1].networkId = 'foo';
+      return hosts[0].join(urls[1])
+          .then(function () {
+            assert.equal(hosts[0].networkId, 'foo');
+            assert.equal(hosts[1].networkId, 'foo');
+          })
+    });
+
     it('should throw an error when trying to connect to a non-existing host', function () {
       return freeport()
           .then(function (port) {
