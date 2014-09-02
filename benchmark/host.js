@@ -49,29 +49,22 @@ host.listen(address, port)
       var peersTimer = 'created '+ peerCount + ' peers';
       console.time(peersTimer);
 
-      var creating = [];
+      var peers = [];
 
       for (var i = 0; i < peerCount; i++) {
         var peerId = 'peer' + hostId + '.' + i;
 
-        var promise = host.create(peerId)
-            .then(function (peer) {
-              peer.on('message', function (sender, message) {
-                receivedCount++;
-              });
-              return peer;
-            });
-
-        creating.push(promise);
+        var peer = host.create(peerId);
+        peer.on('message', function (sender, message) {
+          receivedCount++;
+        });
+        peers.push(peer);
       }
 
-      return Promise.all(creating)
-          .then(function (peers) {
-            console.timeEnd(peersTimer);
+        console.timeEnd(peersTimer);
 
-            logMemory();
-            return peers;
-          });
+        logMemory();
+        return peers;
     })
 
     // send messages
