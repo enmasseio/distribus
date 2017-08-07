@@ -326,7 +326,7 @@ describe('Host', function () {
             assert.ok(false, 'join should not succeed');
           })
           .catch(function (err) {
-            assert.equal(err.toString(), 'Error: connect ECONNREFUSED');
+            assert.equal(err.toString().slice(0,27), 'Error: connect ECONNREFUSED');
             assert.deepEqual(hosts[0].connections, {});
           });
     });
@@ -338,7 +338,7 @@ describe('Host', function () {
             assert.ok(false, 'listen should not succeed');
           })
           .catch(function (err) {
-            assert.equal(err.toString(), 'Error: listen EADDRINUSE');
+            assert.equal(err.toString().slice(0,24), 'Error: listen EADDRINUSE');
           });
     });
 

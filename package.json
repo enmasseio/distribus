@@ -16,21 +16,21 @@
     "type": "git",
     "url": "git://github.com/enmasseio/distribus.git"
   },
-  "dependencies": {
-    "bluebird": "^1.2.4",
-    "emitter-component": "^1.1.1",
-    "node-uuid": "^1.4.1",
-    "ws": "^0.4.31"
-  },
-  "devDependencies": {
-    "freeport": "^1.0.2",
-    "istanbul": "^0.2.6",
-    "mocha": "^1.18.2",
-    "optimist": "^0.6.1",
-    "workerpool": "^1.0.0"
-  },
   "scripts": {
     "test": "mocha test --recursive",
     "coverage": "istanbul cover _mocha -- test --recursive; echo \"\nCoverage report is available at ./coverage/lcov-report/index.html\""
+  },
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "emitter-component": "^1.1.1",
+    "uuid": "^3.1.0",
+    "ws": "^3.1.0"
+  },
+  "devDependencies": {
+    "freeport": "^1.0.5",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.5.0",
+    "optimist": "^0.6.1",
+    "workerpool": "^2.2.2"
   }
 }
